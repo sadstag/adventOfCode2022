@@ -1,0 +1,18 @@
+{
+  "name": "adventofcode2022",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test_1_1": "deno test day/1/part1/tests/main_test.ts --allow-read --watch",
+    "test_1_2": "deno test day/1/part2/tests/main_test.ts --allow-read --watch"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ramda": "^0.28.0"
+  },
+  "devDependencies": {
+    "@types/ramda": "^0.28.20"
+  }
+}
