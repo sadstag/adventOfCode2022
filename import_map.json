@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "common": "./common/index.ts",
+    "ramda": "npm:ramda"
+  }
+}
