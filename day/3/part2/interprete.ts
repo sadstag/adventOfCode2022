@@ -34,7 +34,7 @@ function interpreteLine(line: string, lineNumber: number): RuckSack {
       right: makeSet(rightLetters),
     };
   } catch (e) {
-    throw Error(`Line #${lineNumber}:${e.getMessage()}`);
+    throw Error(`Line #${lineNumber}:${e.message}`);
   }
 
   return rucksack;
