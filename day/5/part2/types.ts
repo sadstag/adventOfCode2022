@@ -26,7 +26,7 @@ export const applyMove = (dock: Dock, { nb, from, to }: Move): Dock => {
 
   const newDock = [...dock];
   newDock[from] = bottom;
-  newDock[to] = concat(reverse(top), dock[to]);
+  newDock[to] = concat(top, dock[to]);
 
   return newDock;
 };
