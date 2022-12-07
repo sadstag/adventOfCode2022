@@ -1,3 +1,6 @@
+// @deno-types="npm:@types/ramda"
+import { map, identity, sortBy } from "ramda";
+
 import { Solver } from "common";
 
 import { buildTree, findAll, Node } from "./tree.ts";
@@ -26,9 +29,17 @@ export const solve: Solver<Input, Output> = (input: Input) => {
   const tree = buildTree(input, defaultData);
   computeTotalNodeSize(tree);
 
-  const bigFolders = findAll((n: Node<NodeData>) => {
-    return n.type === "folder" && n.data.totalSize <= 100000;
+  const unusedSpace = 70000000 - tree.data.totalSize;
+  const neededSpace = 30000000 - unusedSpace;
+
+  const candidateFolders = findAll((n: Node<NodeData>) => {
+    return n.type === "folder" && n.data.totalSize >= neededSpace;
   })(tree);
 
-  return bigFolders.reduce((sum, node) => sum + node.data.totalSize, 0);
+  const [minFolderTotalSize] = sortBy(
+    identity,
+    map((n) => n.data.totalSize, candidateFolders)
+  );
+
+  return minFolderTotalSize;
 };
