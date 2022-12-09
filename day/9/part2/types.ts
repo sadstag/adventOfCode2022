@@ -11,16 +11,16 @@ type Vector = Position;
 // the state of the simulation
 export type Board = {
   // starting point is at position (0,0)
-  head: Position;
-  tail: Position;
+  knots: Position[];
   lastMove: Move | null;
 };
 
 export type History = Board[];
 
-export const newBoard = (): Board => ({
-  head: { x: 0, y: 0 },
-  tail: { x: 0, y: 0 },
+const origin: Position = { x: 0, y: 0 };
+
+export const newBoard = (nbKnots: number): Board => ({
+  knots: new Array(nbKnots).fill(origin),
   lastMove: null,
 });
 
@@ -52,24 +52,55 @@ const areTouching = (
 const translate = (position: Position, direction: Direction): Position =>
   add(position, VECTOR[direction]);
 
-const applySingleMove = (
-  direction: Direction,
-  { head, tail }: Board
-): Board => {
-  const newHead = translate(head, direction);
-  let newTail: Position;
-  if (areSame(head, tail) || areSame(newHead, tail)) {
+// tel where will be knot after the front knot moved from frontKnotBefore to frontKnot
+const moveKnot = (
+  knotBefore: Position,
+  frontKnot: Position,
+  frontKnotBefore: Position
+): Position => {
+  let knot: Position;
+  if (areSame(frontKnot, knotBefore)) {
     // head and tail were on the same spot, tail stays
     // or head rejoin the tail : tail stays
-    newTail = tail;
-  } else if (areTouching(newHead, tail)) {
+    knot = knotBefore;
+  } else if (areTouching(frontKnot, knotBefore)) {
     // head moved around tail, it still at distance 1
-    newTail = tail;
+    knot = knotBefore;
   } else {
-    newTail = head; // tail follows, it is now were head was
+    knot = { ...knotBefore };
+    if (knot.x === frontKnot.x) {
+      knot.y += knot.y < frontKnot.y ? 1 : -1;
+    } else if (knot.y === frontKnot.y) {
+      knot.x += knot.x < frontKnot.x ? 1 : -1;
+    } else {
+      // tail move to the sourrounding of the head, diagonally
+      knot.x += knot.x < frontKnot.x ? 1 : -1;
+      knot.y += knot.y < frontKnot.y ? 1 : -1;
+    }
+  }
+  return knot;
+};
+
+const applySingleMove = (direction: Direction, { knots }: Board): Board => {
+  const [head, ...tail] = knots;
+
+  const newHead = translate(head, direction);
+
+  const newKnots = [newHead];
+
+  let frontKnot = newHead;
+  let frontKnotBefore = head;
+  for (const knot of tail) {
+    const newKnot = moveKnot(knot, frontKnot, frontKnotBefore);
+    newKnots.push(newKnot);
+    frontKnotBefore = knot;
+    frontKnot = newKnot;
   }
 
-  return { head: newHead, tail: newTail, lastMove: { direction, distance: 1 } };
+  return {
+    knots: newKnots,
+    lastMove: { direction, distance: 1 },
+  };
 };
 
 export const applyMove = (move: Move, board: Board): Board[] => {
