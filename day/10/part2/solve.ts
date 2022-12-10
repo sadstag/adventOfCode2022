@@ -1,5 +1,15 @@
 // @deno-types="npm:@types/ramda"
-import { last, map, pluck, reduce, startsWith, sum, uniqWith } from "ramda";
+import {
+  join,
+  last,
+  map,
+  max,
+  pluck,
+  reduce,
+  startsWith,
+  sum,
+  uniqWith,
+} from "ramda";
 
 import { Solver } from "common";
 import {
@@ -9,6 +19,8 @@ import {
   CPUState,
   Execution,
   Instruction,
+  CRT,
+  Raster,
 } from "./types.ts";
 
 const executeInstruction = (
@@ -71,10 +83,39 @@ const advanceExecution = (
   return [...execution, ...executeInstruction(instruction, state)];
 };
 
-const evaluateSignalStrength =
-  (execution: Execution) =>
-  (cycle: number): number =>
-    execution[cycle].registers.start.X * cycle;
+const buildRaster = (): Raster => {
+  const raster = new Array(6);
+  for (let i = 0; i < 6; i++) {
+    raster[i] = new Array(40);
+  }
+  return raster;
+};
+
+// mutates crt raster
+const advanceCRT = (crt: CRT, state: CPUState): CRT => {
+  const { cycle } = state;
+  const cycleIndex = cycle - 1;
+  const row = Math.floor(cycleIndex / 40);
+  const column = cycleIndex % 40;
+  const visible = Math.abs(state.registers.start.X - column) <= 1;
+  crt.raster[row][column] = visible ? "#" : ".";
+  return crt;
+};
+
+const CRTToString = (crt: CRT): string => join("\n", map(join(""), crt.raster));
+
+const drawCRT = (execution: Execution): string => {
+  const [_, ...realExecution] = execution; // the first state is 'fake', CRT wont show it
+  // console.log(realExecution.length);
+  // console.log(Math.max(...pluck("cycle", realExecution)));
+  let crt: CRT = {
+    raster: buildRaster(),
+  };
+  for (const state of realExecution) {
+    crt = advanceCRT(crt, state);
+  }
+  return CRTToString(crt);
+};
 
 export const solve: Solver<Input, Output> = (program: Program) => {
   // program = program.slice(0, 10);
@@ -90,10 +131,9 @@ export const solve: Solver<Input, Output> = (program: Program) => {
     },
   ];
   const execution = reduce(advanceExecution, initialExecution, program);
-  for (const state of execution) {
-    console.log(state);
-  }
+  // for (const state of execution) {
+  //   console.log(state);
+  // }
 
-  const evaluate = evaluateSignalStrength(execution);
-  return sum(map(evaluate, [20, 60, 100, 140, 180, 220]));
+  return drawCRT(execution);
 };

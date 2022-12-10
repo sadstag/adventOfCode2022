@@ -22,7 +22,14 @@ export type CPUState = {
   instructionInProgress: boolean;
 };
 
+type Pixel = "#" | ".";
+export type Raster = Pixel[][];
+
+export type CRT = {
+  raster: Raster;
+};
+
 export type Execution = CPUState[];
 
 export type Input = Program;
-export type Output = number;
+export type Output = string;
