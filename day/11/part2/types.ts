@@ -43,7 +43,11 @@ type ItemProcessingResult = {
   throwTo: MonkeyId;
 };
 
-const evaluateItemWorryLevel = (item: Item, operation: Operation): Item => {
+const evaluateItemWorryLevel = (
+  item: Item,
+  operation: Operation,
+  moduloProduct: number
+): Item => {
   let newValue = item;
   switch (operation.type) {
     case "addition":
@@ -57,15 +61,16 @@ const evaluateItemWorryLevel = (item: Item, operation: Operation): Item => {
       break;
     default:
   }
-  return Math.floor(newValue / 3); // by worrying reduction rule
+  return newValue % moduloProduct;
 };
 
 const processItem = (
   item: Item,
-  operation: Operation,
-  test: Test
+  monkey: Monkey,
+  moduloProduct: number
 ): ItemProcessingResult => {
-  const throwItem = evaluateItemWorryLevel(item, operation);
+  const { operation, test } = monkey;
+  const throwItem = evaluateItemWorryLevel(item, operation, moduloProduct);
   const throwTo =
     test[throwItem % test.modulo ? "monkeyIdWhenTestKo" : "monkeyIdWhenTestOk"];
   return {
@@ -74,26 +79,34 @@ const processItem = (
   };
 };
 
-const animateMonkey = (nextMonkeys: Monkey[], monkey: Monkey): Monkey[] => {
-  const { id, items, operation, test } = monkey;
+const animateMonkey =
+  (moduloProduct: number) =>
+  (nextMonkeys: Monkey[], monkey: Monkey): Monkey[] => {
+    const { id, items } = monkey;
 
-  for (const item of items) {
-    const { throwItem, throwTo } = processItem(item, operation, test);
-    nextMonkeys[throwTo].items.push(throwItem);
-  }
+    for (const item of items) {
+      const { throwItem, throwTo } = processItem(item, monkey, moduloProduct);
+      nextMonkeys[throwTo].items.push(throwItem);
+    }
 
-  nextMonkeys[id].items = [];
-  nextMonkeys[id].nbItemInspections += items.length;
+    nextMonkeys[id].items = [];
+    nextMonkeys[id].nbItemInspections += items.length;
 
-  return nextMonkeys;
-};
+    return nextMonkeys;
+  };
 
 export const nextRound = (round: Round): Round => {
   const { id: roundId, monkeys } = round;
 
+  const moduloProduct = reduce(
+    (product, monkey) => product * monkey.test.modulo,
+    1,
+    monkeys
+  );
+
   let nextMonkeys: Monkey[] = clone(monkeys);
 
-  nextMonkeys = reduce(animateMonkey, nextMonkeys, nextMonkeys);
+  nextMonkeys = reduce(animateMonkey(moduloProduct), nextMonkeys, nextMonkeys);
 
   return {
     id: roundId + 1,

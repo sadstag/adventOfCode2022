@@ -4,7 +4,7 @@ import { descend, prop, sort } from "ramda";
 import { Solver } from "common";
 import { Output, Input, Round, nextRound } from "./types.ts";
 
-const NB_ROUNDS = 20;
+const NB_ROUNDS = 10000;
 
 const evaluateRound = (round: Round): number => {
   const [m1, m2] = sort(descend(prop("nbItemInspections")), round.monkeys);
@@ -19,6 +19,5 @@ export const solve: Solver<Input, Output> = (input: Input) => {
   for (let roundId = 1; roundId <= NB_ROUNDS; roundId++) {
     round = nextRound(round);
   }
-  console.log(round);
   return evaluateRound(round);
 };
