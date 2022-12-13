@@ -1,7 +1,13 @@
 // @deno-types="npm:@types/ramda"
-import { map, split } from "ramda";
+import { isEmpty, map, splitWhenever } from "ramda";
 
 import { Interpretor } from "common";
-import { Input } from "./types.ts";
+import { Input, PacketPair } from "./types.ts";
 
-export const interprete: Interpretor<Input> = (lines: string[]) => lines;
+const interpreteCouple = (couple: string[]): PacketPair =>
+  map(eval, couple) as PacketPair;
+
+export const interprete: Interpretor<Input> = (lines: string[]) => {
+  const couples = splitWhenever(isEmpty, lines);
+  return map(interpreteCouple, couples);
+};

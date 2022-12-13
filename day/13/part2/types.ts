@@ -2,8 +2,7 @@ export type Elem = number | Elem[];
 
 export type Packet = Elem[];
 
-export type PacketPair = [Packet, Packet];
-export type Input = PacketPair[];
+export type Input = Packet[];
 export type Output = number;
 
 // p1 < p2 => -1
